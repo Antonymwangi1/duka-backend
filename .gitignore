@@ -1,5 +1,17 @@
-node_modules
-# Keep environment variables out of version control
+# Environment
 .env
 
-/src/generated/prisma
+# AI Assistant configs
+.claude
+.windsurf
+.cursor
+.agents
+
+# Dependencies
+node_modules
+
+# Build output
+dist
+
+# Prisma
+prisma/migrations/dev.db
