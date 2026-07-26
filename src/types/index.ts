@@ -1,12 +1,12 @@
-import { Request } from 'express'
+import { Request } from "express";
 
 // Extend express request to include authenticated user
 export interface AuthenticatedRequest extends Request {
-    user?: {
-        userId: string
-        shopId: string
-        role: 'owner' | 'admin' | 'cashier'
-    }
+  user?: {
+    userId: string;
+    shopId: string;
+    role: "OWNER" | "ADMIN" | "CASHIER";
+  };
 }
 
-export type Role = 'owner' | 'admin' | 'cashier' 
+export type Role = "OWNER" | "ADMIN" | "CASHIER";

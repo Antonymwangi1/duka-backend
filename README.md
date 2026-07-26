@@ -90,52 +90,55 @@ FRONTEND_URL=
 
 ## API Endpoints
 
-Base URL: `http://localhost:5000`
+Base URL: `http://localhost:5000/api/v1`
 
 ### Auth
 | Method | Endpoint | Auth | Role | Description |
 |--------|----------|------|------|-------------|
-| POST | `/api/auth/register` | No | None | Register owner and create shop |
-| POST | `/api/auth/login` | No | Everyone | Login and receive tokens |
-| POST | `/api/auth/logout` | Yes | Everyone | Logout and invalidate token |
-| POST | `/api/auth/refresh` | No | None | Refresh access token |
-| POST | `/api/auth/staff` | Yes | Owner | Create staff account |
-| GET | `/api/auth/staff` | Yes | Owner | List all staff |
-| PATCH | `/api/auth/staff/:id` | Yes | Owner | Update staff role or deactivate |
-| DELETE | `/api/auth/staff/:id` | Yes | Owner | Remove staff access |
+| POST | `/auth/register` | No | None | Register owner and create shop |
+| POST | `/auth/login` | No | Everyone | Login and receive tokens |
+| POST | `/auth/logout` | Yes | Everyone | Logout and invalidate token |
+| POST | `/auth/refresh` | No | None | Refresh access token |
+| POST | `/auth/switch-shop` | Yes | Owner | switch shop |
+| POST | `/auth/shops` | Yes | Owner | Create shops |
+| GET | `/auth/shops` | Yes | Owner | List all shops |
+| POST | `/auth/staff` | Yes | Owner | Create staff account |
+| GET | `/auth/staff` | Yes | Owner | List all staff |
+| PATCH | `/auth/staff/:id` | Yes | Owner | Update staff role or deactivate |
+| DELETE | `/auth/staff/:id` | Yes | Owner | Remove staff access |
 
 ### Products
 | Method | Endpoint | Auth | Role | Description |
 |--------|----------|------|------|-------------|
-| POST | `/api/products` | Yes | Owner, Admin | Create product |
-| GET | `/api/products` | Yes | All | List all products |
-| GET | `/api/products/:id` | Yes | All | Get single product |
-| PATCH | `/api/products/:id` | Yes | Owner, Admin | Update product |
-| DELETE | `/api/products/:id` | Yes | Owner, Admin | Soft delete product |
-| GET | `/api/products/search?q=` | Yes | All | Search by name |
-| GET | `/api/products/search?barcode=` | Yes | All | Search by barcode |
-| PATCH | `/api/products/:id/stock` | Yes | Owner, Admin | Adjust stock |
-| GET | `/api/products/low-stock` | Yes | All | Products below threshold |
+| POST | `/products` | Yes | Owner, Admin | Create product |
+| GET | `/products` | Yes | All | List all products |
+| GET | `/products/:id` | Yes | All | Get single product |
+| PATCH | `/products/:id` | Yes | Owner, Admin | Update product |
+| DELETE | `/products/:id` | Yes | Owner, Admin | Soft delete product |
+| GET | `/products/search?q=` | Yes | All | Search by name |
+| GET | `/products/search?barcode=` | Yes | All | Search by barcode |
+| PATCH | `/products/:id/stock` | Yes | Owner, Admin | Adjust stock |
+| GET | `/products/low-stock` | Yes | All | Products below threshold |
 
 ### Sales
 | Method | Endpoint | Auth | Role | Description |
 |--------|----------|------|------|-------------|
-| POST | `/api/sales` | Yes | All | Create a sale |
-| GET | `/api/sales` | Yes | Owner, Admin | List all sales |
-| GET | `/api/sales?staff_id=` | Yes | Owner, Admin | Sales by staff |
-| GET | `/api/sales?date=` | Yes | Owner, Admin | Sales by date |
-| GET | `/api/sales/:id` | Yes | All | Get single sale |
-| GET | `/api/sales/:id/receipt` | Yes | All | Generate receipt |
-| POST | `/api/sales/:id/reverse` | Yes | Owner, Admin | Reverse a sale |
+| POST | `/sales` | Yes | All | Create a sale |
+| GET | `/sales` | Yes | Owner, Admin | List all sales |
+| GET | `/sales?staff_id=` | Yes | Owner, Admin | Sales by staff |
+| GET | `/sales?date=` | Yes | Owner, Admin | Sales by date |
+| GET | `/sales/:id` | Yes | All | Get single sale |
+| GET | `/sales/:id/receipt` | Yes | All | Generate receipt |
+| POST | `/sales/:id/reverse` | Yes | Owner, Admin | Reverse a sale |
 
 ### Reports
 | Method | Endpoint | Auth | Role | Description |
 |--------|----------|------|------|-------------|
-| GET | `/api/reports/summary?period=&date=` | Yes | Owner, Admin | Sales summary |
-| GET | `/api/reports/profit?period=&date=` | Yes | Owner, Admin | Profit report |
-| GET | `/api/reports/low-stock` | Yes | Owner, Admin | Low stock report |
-| GET | `/api/reports/top-products?period=` | Yes | Owner, Admin | Best sellers |
-| GET | `/api/reports/staff?period=&date=` | Yes | Owner | Staff performance |
+| GET | `/reports/summary?period=&date=` | Yes | Owner, Admin | Sales summary |
+| GET | `/reports/profit?period=&date=` | Yes | Owner, Admin | Profit report |
+| GET | `/reports/low-stock` | Yes | Owner, Admin | Low stock report |
+| GET | `/reports/top-products?period=` | Yes | Owner, Admin | Best sellers |
+| GET | `/reports/staff?period=&date=` | Yes | Owner | Staff performance |
 
 ---
 
