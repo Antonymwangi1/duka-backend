@@ -165,6 +165,3 @@ reports         → cached reports and analytics data
 - [ ] Point of Sale
 - [ ] Reports and analytics
 - [ ] Deploy to Railwa
-
-## License
-MIT
