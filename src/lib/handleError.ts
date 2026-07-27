@@ -44,6 +44,10 @@ export const handleError = (res: Response, error: unknown) => {
         return res.status(404).json({
           message: "Category not found",
         });
+      case "DUPLICATE_CATEGORY":
+        return res.status(409).json({
+          message: "A category with this name already exists in your shop",
+        });
       case "SALE_NOT_FOUND":
         return res.status(404).json({
           message: "Sale not found",
