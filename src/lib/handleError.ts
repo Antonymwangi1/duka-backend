@@ -54,7 +54,9 @@ export const handleError = (res: Response, error: unknown) => {
         });
       case "INSUFFICIENT_STOCK":
         return res.status(400).json({
-          message: "Insufficient stock for one or more items",
+          message: error.message.includes(":")
+            ? `Insufficient stock for ${error.message.split(":")[1]}`
+            : "Insufficient stock for one or more items",
         });
       case "FORBIDDEN":
         return res.status(403).json({
@@ -67,6 +69,15 @@ export const handleError = (res: Response, error: unknown) => {
       case "DUPLICATE_BARCODE":
         return res.status(409).json({
           message: "A product with this barcode already exists in your shop",
+        });
+      case "SALE_ITEM_NOT_FOUND":
+        return res.status(404).json({
+          message: "Sale item not found in this sale",
+        });
+
+      case "REVERSE_QUANTITY_EXCEEDED":
+        return res.status(400).json({
+          message: "Reversal quantity cannot exceed original sale quantity",
         });
       default:
         console.error("Unhandled error:", error);

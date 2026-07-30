@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import { errorHandler } from "@middleware/errorHandler";
 import authRouter from "@modules/auth/auth.routes";
 import productsRouter from "@modules/products/products.routes";
+import salesRouter from "@modules/sales/sales.routes";
 
 const app = express();
 // global middleware
@@ -26,6 +27,7 @@ app.get("/health", (req, res) => {
 // Routes
 app.use("/api/v1/auth/", authRouter);
 app.use("/api/v1/products", productsRouter);
+app.use("/api/v1/sales", salesRouter);
 
 // Error handler
 app.use(errorHandler);
