@@ -167,8 +167,8 @@ reports         → cached reports and analytics data
 **V1 (Current)**
 
 - [x] Database schema and migrations
-- [x] Authentication and authorisation
+- [x] Authentication and authorization
 - [x] Products and inventory management
 - [x] Point of Sale
-- [ ] Reports and analytics
-- [ ] Deploy to Railway
+- [x] Reports and analytics
+- [ ] Deploy to Render
