@@ -6,6 +6,7 @@ import { errorHandler } from "@middleware/errorHandler";
 import authRouter from "@modules/auth/auth.routes";
 import productsRouter from "@modules/products/products.routes";
 import salesRouter from "@modules/sales/sales.routes";
+import reportsRouter from "@modules/reports/reports.routes";
 
 const app = express();
 // global middleware
@@ -28,6 +29,7 @@ app.get("/health", (req, res) => {
 app.use("/api/v1/auth/", authRouter);
 app.use("/api/v1/products", productsRouter);
 app.use("/api/v1/sales", salesRouter);
+app.use("/api/v1/reports", reportsRouter);
 
 // Error handler
 app.use(errorHandler);
