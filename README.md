@@ -6,7 +6,7 @@ Duka is a simple POS and Inventory management system, and sales tracker system d
 
 ## Live Demo
 
-🔗 Coming soon
+🔗 https://duka-backend-kd1h.onrender.com/
 
 ## The Problem
 
@@ -171,4 +171,4 @@ reports         → cached reports and analytics data
 - [x] Products and inventory management
 - [x] Point of Sale
 - [x] Reports and analytics
-- [ ] Deploy to Render
+- [x] Deploy to Render
