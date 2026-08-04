@@ -1,8 +1,9 @@
 import "dotenv/config";
 import app from "./app";
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 10000;
+const HOST = "0.0.0.0";
 
-app.listen(PORT, () => {
-  console.log(`Duka server running on port ${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`Server is running on http://${HOST}:${PORT}`);
 });
