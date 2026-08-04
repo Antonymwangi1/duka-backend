@@ -1,29 +1,47 @@
-import Redis from 'ioredis'
+import Redis, { RedisOptions } from "ioredis";
 
 const globalForRedis = globalThis as unknown as {
-    redis: Redis | undefined
-}
+  redis: Redis | undefined;
+};
 
-const redis = globalForRedis.redis ?? new Redis(
-    process.env.REDIS_URL as string ?? {
-        host:     process.env.REDIS_HOST ?? 'localhost',
-        port:     Number(process.env.REDIS_PORT) ?? 6379,
-        password: process.env.REDIS_PASSWORD,
-    },
-    {
-        retryStrategy: (times) => { 
-            const delay = Math.min(times * 50, 2000)
-            return delay
-        },
-        maxRetriesPerRequest: 3,
+// Common connection options
+const options: RedisOptions = {
+  maxRetriesPerRequest: 3,
+  retryStrategy: (times) => {
+    if (times > 10) {
+      console.error("Redis: max connection retries reached.");
+      return null; // Stop retrying after 10 attempts so server won't hang
     }
-)
+    return Math.min(times * 100, 2000);
+  },
+};
 
-if (process.env.NODE_ENV !== 'production') {
-    globalForRedis.redis = redis
+// Enable TLS if REDIS_URL uses secure web sockets / TLS (rediss://)
+const redisUrl = process.env.REDIS_URL;
+if (redisUrl?.startsWith("rediss://")) {
+  options.tls = { rejectUnauthorized: false };
 }
 
-redis.on('connect', () => console.log('Redis connected'))
-redis.on('error',   (err) => console.error('Redis error:', err))
+function createRedisInstance(): Redis {
+  if (redisUrl) {
+    return new Redis(redisUrl, options);
+  }
 
-export default redis
+  return new Redis({
+    ...options,
+    host: process.env.REDIS_HOST || "localhost",
+    port: Number(process.env.REDIS_PORT) || 6379,
+    password: process.env.REDIS_PASSWORD || undefined,
+  });
+}
+
+const redis = globalForRedis.redis ?? createRedisInstance();
+
+if (process.env.NODE_ENV !== "production") {
+  globalForRedis.redis = redis;
+}
+
+redis.on("connect", () => console.log("Redis connected successfully"));
+redis.on("error", (err) => console.error("Redis error:", err.message));
+
+export default redis;
