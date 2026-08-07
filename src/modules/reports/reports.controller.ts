@@ -48,7 +48,6 @@ export const ReportsController = {
 
   getProfitReport: async (req: AuthenticatedRequest, res: Response) => {
     try {
-      console.log("Reports req.user:", req.user);
       // Guard against null shopId
       if (!req.user!.shopId) {
         return res.status(400).json({

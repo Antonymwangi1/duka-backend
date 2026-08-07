@@ -145,18 +145,6 @@ export const AuthService = {
       shopId = user.shopId;
     }
 
-    console.log("Login JWT payload:", {
-      userId: user.id,
-      shopId,
-      role: user.role,
-      shopsFound:
-        user.role === "OWNER"
-          ? await AuthRepository.findShopsByOwnerId(user.id).then(
-              (s) => s.length,
-            )
-          : "N/A",
-    });
-
     // generate tokens
     const accessToken = generateAccessToken({
       userId: user.id,
@@ -206,6 +194,22 @@ export const AuthService = {
     // check account is still active
     if (!user.isActive) {
       throw new Error("ACCOUNT_DISABLED");
+    }
+
+    // Determine shopId
+    // Staff have shopId on their user record
+    // Owners have shopId linked via shops.ownerId
+    let shopId: string | null = user.shopId ?? null
+
+    if (user.role === 'OWNER' && !shopId) {
+        // Fetch owner's shops
+        const shops = await AuthRepository.findShopsByOwnerId(user.id)
+        if (shops.length === 1) {
+            // Single shop owner — auto select
+            shopId = shops[0].id
+        }
+        // Multiple shops → shopId stays null
+        // Frontend will show shop selector
     }
 
     // generate new access token
