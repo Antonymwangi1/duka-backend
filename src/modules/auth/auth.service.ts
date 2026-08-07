@@ -145,6 +145,18 @@ export const AuthService = {
       shopId = user.shopId;
     }
 
+    console.log("Login JWT payload:", {
+      userId: user.id,
+      shopId,
+      role: user.role,
+      shopsFound:
+        user.role === "OWNER"
+          ? await AuthRepository.findShopsByOwnerId(user.id).then(
+              (s) => s.length,
+            )
+          : "N/A",
+    });
+
     // generate tokens
     const accessToken = generateAccessToken({
       userId: user.id,

@@ -16,6 +16,13 @@ export const ReportsController = {
 
   getSummary: async (req: AuthenticatedRequest, res: Response) => {
     try {
+      // Guard against null shopId
+      if (!req.user!.shopId) {
+        return res.status(400).json({
+          message: "No shop selected. Please select a shop first.",
+        });
+      }
+
       const query = ReportQuerySchema.parse(req.query);
 
       const data = await ReportsService.getSummary(
@@ -41,6 +48,12 @@ export const ReportsController = {
 
   getProfitReport: async (req: AuthenticatedRequest, res: Response) => {
     try {
+      // Guard against null shopId
+      if (!req.user!.shopId) {
+        return res.status(400).json({
+          message: "No shop selected. Please select a shop first.",
+        });
+      }
       const query = ReportQuerySchema.parse(req.query);
 
       const data = await ReportsService.getProfitReport(
@@ -66,6 +79,12 @@ export const ReportsController = {
 
   getTopProducts: async (req: AuthenticatedRequest, res: Response) => {
     try {
+      // Guard against null shopId
+      if (!req.user!.shopId) {
+        return res.status(400).json({
+          message: "No shop selected. Please select a shop first.",
+        });
+      }
       const query = TopProductsQuerySchema.parse(req.query);
 
       const data = await ReportsService.getTopProducts(
@@ -91,6 +110,12 @@ export const ReportsController = {
 
   getStaffPerformance: async (req: AuthenticatedRequest, res: Response) => {
     try {
+      // Guard against null shopId
+      if (!req.user!.shopId) {
+        return res.status(400).json({
+          message: "No shop selected. Please select a shop first.",
+        });
+      }
       const query = StaffReportQuerySchema.parse(req.query);
 
       const data = await ReportsService.getStaffPerformance(
@@ -116,6 +141,12 @@ export const ReportsController = {
 
   getLowStockReport: async (req: AuthenticatedRequest, res: Response) => {
     try {
+      if (!req.user!.shopId) {
+        return res.status(400).json({
+          message: "No shop selected. Please select a shop first.",
+        });
+      }
+
       const data = await ReportsService.getLowStockReport(req.user!.shopId);
 
       return res.status(200).json({
