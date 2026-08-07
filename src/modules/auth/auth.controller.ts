@@ -19,8 +19,11 @@ const REFRESH_TOKEN_COOKIE = "refresh_token";
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite: "strict" as const,
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+  sameSite:
+    process.env.NODE_ENV === "production"
+      ? ("none" as const) // required for cross-origin in production
+      : ("lax" as const), // lax works fine for localhost
+  maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
 // CONTROLLERS
