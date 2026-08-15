@@ -64,6 +64,8 @@ export const getDateRange = (period: string, date?: string, month?: string) => {
 
 // REPORTS REPOSITORY
 
+console.log("CALCULATING FRESH SUMMARY");
+
 export const ReportsRepository = {
   // SALES SUMMARY
 
