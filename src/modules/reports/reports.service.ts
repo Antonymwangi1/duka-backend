@@ -62,36 +62,44 @@ export const ReportsService = {
     const cached = await redis.get(cacheKey);
     if (cached) return JSON.parse(cached);
 
-    // Check reports table for past periods
-    const savedReport = await ReportsRepository.findCachedReport(
-      shopId,
-      "summary",
-      start,
-      end,
-    );
+    const now = new Date();
+    const isPastPeriod = end < now;
 
-    if (savedReport) {
-      // Store in Redis for faster subsequent access
-      await redis.setex(
-        cacheKey,
-        24 * 60 * 60,
-        JSON.stringify(savedReport.reportData),
+    // Check reports table ONLY for past periods
+    // Active/current periods should not pull stale persistent snapshots
+    if (isPastPeriod) {
+      const savedReport = await ReportsRepository.findCachedReport(
+        shopId,
+        "summary",
+        start,
+        end,
       );
-      return savedReport.reportData;
+
+      if (savedReport) {
+        // Store in Redis for faster subsequent access
+        await redis.setex(
+          cacheKey,
+          24 * 60 * 60,
+          JSON.stringify(savedReport.reportData),
+        );
+        return savedReport.reportData;
+      }
     }
 
     // Calculate fresh report
     const data = await ReportsRepository.getSalesSummary(shopId, start, end);
 
-    // Save to reports table
-    await ReportsRepository.saveReport(
-      shopId,
-      generatedById,
-      "summary",
-      start,
-      end,
-      data,
-    );
+    // Save to reports table only if period is in the past
+    if (isPastPeriod) {
+      await ReportsRepository.saveReport(
+        shopId,
+        generatedById,
+        "summary",
+        start,
+        end,
+        data,
+      );
+    }
 
     // Cache in Redis
     const ttl = getCacheTTL(start, end);
@@ -118,35 +126,42 @@ export const ReportsService = {
     const cached = await redis.get(cacheKey);
     if (cached) return JSON.parse(cached);
 
-    // Check reports table
-    const savedReport = await ReportsRepository.findCachedReport(
-      shopId,
-      "profit",
-      start,
-      end,
-    );
+    const now = new Date();
+    const isPastPeriod = end < now;
 
-    if (savedReport) {
-      await redis.setex(
-        cacheKey,
-        24 * 60 * 60,
-        JSON.stringify(savedReport.reportData),
+    // Check reports table only for past periods
+    if (isPastPeriod) {
+      const savedReport = await ReportsRepository.findCachedReport(
+        shopId,
+        "profit",
+        start,
+        end,
       );
-      return savedReport.reportData;
+
+      if (savedReport) {
+        await redis.setex(
+          cacheKey,
+          24 * 60 * 60,
+          JSON.stringify(savedReport.reportData),
+        );
+        return savedReport.reportData;
+      }
     }
 
     // Calculate fresh report
     const data = await ReportsRepository.getProfitReport(shopId, start, end);
 
     // Save and cache
-    await ReportsRepository.saveReport(
-      shopId,
-      generatedById,
-      "profit",
-      start,
-      end,
-      data,
-    );
+    if (isPastPeriod) {
+      await ReportsRepository.saveReport(
+        shopId,
+        generatedById,
+        "profit",
+        start,
+        end,
+        data,
+      );
+    }
 
     const ttl = getCacheTTL(start, end);
     await redis.setex(cacheKey, ttl, JSON.stringify(data));
@@ -177,22 +192,27 @@ export const ReportsService = {
     const cached = await redis.get(cacheKey);
     if (cached) return JSON.parse(cached);
 
-    // Check reports table
+    const now = new Date();
+    const isPastPeriod = end < now;
     const reportType = `top_products_${query.limit}`;
-    const savedReport = await ReportsRepository.findCachedReport(
-      shopId,
-      reportType,
-      start,
-      end,
-    );
 
-    if (savedReport) {
-      await redis.setex(
-        cacheKey,
-        24 * 60 * 60,
-        JSON.stringify(savedReport.reportData),
+    // Check reports table only for past periods
+    if (isPastPeriod) {
+      const savedReport = await ReportsRepository.findCachedReport(
+        shopId,
+        reportType,
+        start,
+        end,
       );
-      return savedReport.reportData;
+
+      if (savedReport) {
+        await redis.setex(
+          cacheKey,
+          24 * 60 * 60,
+          JSON.stringify(savedReport.reportData),
+        );
+        return savedReport.reportData;
+      }
     }
 
     // Calculate fresh report
@@ -204,14 +224,16 @@ export const ReportsService = {
     );
 
     // Save and cache
-    await ReportsRepository.saveReport(
-      shopId,
-      generatedById,
-      reportType,
-      start,
-      end,
-      data,
-    );
+    if (isPastPeriod) {
+      await ReportsRepository.saveReport(
+        shopId,
+        generatedById,
+        reportType,
+        start,
+        end,
+        data,
+      );
+    }
 
     const ttl = getCacheTTL(start, end);
     await redis.setex(cacheKey, ttl, JSON.stringify(data));
@@ -237,21 +259,26 @@ export const ReportsService = {
     const cached = await redis.get(cacheKey);
     if (cached) return JSON.parse(cached);
 
-    // Check reports table
-    const savedReport = await ReportsRepository.findCachedReport(
-      shopId,
-      "staff_performance",
-      start,
-      end,
-    );
+    const now = new Date();
+    const isPastPeriod = end < now;
 
-    if (savedReport) {
-      await redis.setex(
-        cacheKey,
-        24 * 60 * 60,
-        JSON.stringify(savedReport.reportData),
+    // Check reports table only for past periods
+    if (isPastPeriod) {
+      const savedReport = await ReportsRepository.findCachedReport(
+        shopId,
+        "staff_performance",
+        start,
+        end,
       );
-      return savedReport.reportData;
+
+      if (savedReport) {
+        await redis.setex(
+          cacheKey,
+          24 * 60 * 60,
+          JSON.stringify(savedReport.reportData),
+        );
+        return savedReport.reportData;
+      }
     }
 
     // Calculate fresh report
@@ -262,14 +289,16 @@ export const ReportsService = {
     );
 
     // Save and cache
-    await ReportsRepository.saveReport(
-      shopId,
-      generatedById,
-      "staff_performance",
-      start,
-      end,
-      data,
-    );
+    if (isPastPeriod) {
+      await ReportsRepository.saveReport(
+        shopId,
+        generatedById,
+        "staff_performance",
+        start,
+        end,
+        data,
+      );
+    }
 
     const ttl = getCacheTTL(start, end);
     await redis.setex(cacheKey, ttl, JSON.stringify(data));

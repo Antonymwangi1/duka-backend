@@ -7,7 +7,6 @@ import {
 } from "./sales.schema";
 import { PaymentMethod } from "@prisma/client";
 import redis from "@lib/redis";
-import { promise } from "zod";
 
 // CACHE KEYS
 
@@ -20,6 +19,14 @@ const invalidateSalesCaches = async (shopId: string, saleId?: string) => {
   const keys = [CacheKeys.salesList(shopId)];
   if (saleId) keys.push(CacheKeys.sale(shopId, saleId));
   await redis.del(...keys);
+};
+
+// HELPER: Invalidate all dynamic report caches for a shop
+const invalidateReportCaches = async (shopId: string) => {
+  const keys = await redis.keys(`reports:${shopId}:*`);
+  if (keys.length > 0) {
+    await redis.del(...keys);
+  }
 };
 
 // SALES SERVICE
@@ -81,22 +88,19 @@ export const SalesService = {
       items: saleItems,
     });
 
-    // Invalidate caches
+    // Invalidate sale list caches
     await invalidateSalesCaches(shopId);
 
-    // Also invalidate product caches since stock changed
-    await redis.del(`products:${shopId}:list`);
-    await redis.del(`products:${shopId}:low-stock`);
-    for (const item of saleItems) {
-      await redis.del(`product:${shopId}:${item.productId}`);
-    }
+    // Invalidate product caches since stock changed
+    const productKeys = [
+      `products:${shopId}:list`,
+      `products:${shopId}:low-stock`,
+      ...saleItems.map((item) => `product:${shopId}:${item.productId}`),
+    ];
+    await redis.del(...productKeys);
 
-    // Invalidate report caches so dashboard shows fresh data
-    const today = new Date().toISOString().slice(0, 10);
-    await redis.del(`reports:${shopId}:summary:daily:${today}`);
-    await redis.del(`reports:${shopId}:profit:daily:${today}`);
-    await redis.del(`reports:${shopId}:top-products:daily:${today}:5`);
-    await redis.del(`reports:${shopId}:staff:daily:${today}`);
+    // Invalidate all report caches (daily, weekly, monthly, staff, top products)
+    await invalidateReportCaches(shopId);
 
     return sale;
   },
@@ -222,11 +226,17 @@ export const SalesService = {
     await invalidateSalesCaches(shopId, saleId);
 
     // Invalidate product caches since stock changed
-    await redis.del(`products:${shopId}:list`);
-    await redis.del(`products:${shopId}:low-stock`);
-    for (const item of sale.saleItems) {
-      await redis.del(`product:${shopId}:${(item as any).productId}`);
-    }
+    const productKeys = [
+      `products:${shopId}:list`,
+      `products:${shopId}:low-stock`,
+      ...sale.saleItems.map(
+        (item) => `product:${shopId}:${(item as any).productId}`,
+      ),
+    ];
+    await redis.del(...productKeys);
+
+    // Invalidate report caches so dashboard updates on reversals
+    await invalidateReportCaches(shopId);
 
     return result;
   },
