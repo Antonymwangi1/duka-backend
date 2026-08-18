@@ -91,6 +91,13 @@ export const SalesService = {
       await redis.del(`product:${shopId}:${item.productId}`);
     }
 
+    // Invalidate report caches so dashboard shows fresh data
+    const today = new Date().toISOString().slice(0, 10);
+    await redis.del(`reports:${shopId}:summary:daily:${today}`);
+    await redis.del(`reports:${shopId}:profit:daily:${today}`);
+    await redis.del(`reports:${shopId}:top-products:daily:${today}:5`);
+    await redis.del(`reports:${shopId}:staff:daily:${today}`);
+
     return sale;
   },
 

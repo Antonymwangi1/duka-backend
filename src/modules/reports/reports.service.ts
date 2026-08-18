@@ -53,10 +53,6 @@ export const ReportsService = {
     generatedById: string,
     query: ReportQuery,
   ) => {
-    console.log("=== SUMMARY REQUEST ===");
-    console.log("shopId:", shopId);
-    console.log("query:", query);
-
     const { start, end } = getDateRange(query.period, query.date, query.month);
 
     const dateKey = buildDateKey(query.period, query.date, query.month);
@@ -64,8 +60,6 @@ export const ReportsService = {
 
     // Check Redis cache
     const cached = await redis.get(cacheKey);
-    console.log("cacheKey:", cacheKey);
-    console.log("redis cached:", cached);
     if (cached) return JSON.parse(cached);
 
     // Check reports table for past periods
