@@ -88,9 +88,7 @@ export const CreateStaffSchema = z.object({
 
   password: z
     .string({ error: "password is required" })
-    .min(8, "password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number"),
+    .min(6, "password must be at least 6 characters"),
 
   role: z.enum(["ADMIN", "CASHIER"], {
     error: "Role must be either 'ADMIN' or 'CASHIER'",
