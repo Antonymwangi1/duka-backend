@@ -6,7 +6,7 @@ Duka is a simple POS and Inventory management system, and sales tracker system d
 
 ## Live Demo
 
-🔗 https://duka-backend-kd1h.onrender.com/
+🔗 https://duka-beige.vercel.app/
 
 ## The Problem
 
