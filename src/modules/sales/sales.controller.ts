@@ -8,6 +8,7 @@ import {
   ListSalesQuerySchema,
   ReverseSaleSchema,
 } from "./sales.schema";
+import { getShopId } from "@middleware/getShopId";
 
 export const SalesController = {
   // ----------------------------------------------------------
@@ -18,8 +19,10 @@ export const SalesController = {
     try {
       const body = CreateSaleSchema.parse(req.body);
 
+      const shopId = getShopId(req);
+
       const sale = await SalesService.createSale(
-        req.user!.shopId,
+        shopId,
         req.user!.userId,
         body,
       );
@@ -41,7 +44,8 @@ export const SalesController = {
     try {
       const query = ListSalesQuerySchema.parse(req.query);
 
-      const result = await SalesService.listSales(req.user!.shopId, query);
+      const shopId = getShopId(req);
+      const result = await SalesService.listSales(shopId, query);
 
       return res.status(200).json(result);
     } catch (error) {
@@ -57,7 +61,7 @@ export const SalesController = {
     try {
       const sale = await SalesService.getSale(
         req.params.id as string,
-        req.user!.shopId,
+        getShopId(req),
       );
 
       return res.status(200).json({ sale });
@@ -73,7 +77,7 @@ export const SalesController = {
     try {
       const receipt = await SalesService.getReceipt(
         req.params.id as string,
-        req.user!.shopId,
+        getShopId(req),
       );
 
       return res.status(200).json({ receipt });
@@ -91,7 +95,7 @@ export const SalesController = {
 
       const result = await SalesService.reverseSale(
         req.params.id as string,
-        req.user!.shopId,
+        getShopId(req),
         req.user!.userId,
         body,
       );

@@ -183,8 +183,15 @@ export const AuthController = {
       // Validate request body
       const body = CreateStaffSchema.parse(req.body);
 
+      const shopId = req.user!.shopId;
+      if (!shopId) {
+        return res.status(400).json({
+          message: "Shop ID is required to create staff",
+        });
+      }
+
       // Call service
-      const staff = await AuthService.createStaff(body, req.user!.shopId);
+      const staff = await AuthService.createStaff(body, shopId);
 
       // Return response
       return res.status(201).json({
@@ -202,7 +209,13 @@ export const AuthController = {
   // GET STAFF
   getStaff: async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const staff = await AuthService.getStaff(req.user!.shopId);
+      const shopId = req.user!.shopId;
+      if (!shopId) {
+        return res.status(400).json({
+          message: "Shop ID is required to fetch staff",
+        });
+      }
+      const staff = await AuthService.getStaff(shopId);
 
       return res.status(200).json({ staff });
     } catch (error) {
@@ -216,10 +229,17 @@ export const AuthController = {
       // validate request body
       const body = UpdateStaffSchema.parse(req.body);
 
+      const shopId = req.user!.shopId;
+      if (!shopId) {
+        return res.status(400).json({
+          message: "Shop ID is required to update staff",
+        });
+      }
+
       // Call service
       const staff = await AuthService.updateStaff(
         req.params.id as string,
-        req.user!.shopId,
+        shopId,
         body,
       );
 
@@ -239,7 +259,13 @@ export const AuthController = {
   // DELETE STAFF
   deleteStaff: async (req: AuthenticatedRequest, res: Response) => {
     try {
-      await AuthService.deleteStaff(req.params.id as string, req.user!.shopId);
+      const shopId = req.user!.shopId;
+      if (!shopId) {
+        return res.status(400).json({
+          message: "Shop ID is required to delete staff",
+        });
+      }
+      await AuthService.deleteStaff(req.params.id as string, shopId);
 
       return res.status(200).json({
         message: "Staff member removed successfully",
