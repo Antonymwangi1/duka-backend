@@ -10,6 +10,7 @@ import {
   CreateCategorySchema,
   SearchQuerySchema,
 } from "./products.schema";
+import { getShopId } from "@middleware/getShopId";
 
 export const ProductsController = {
   // CATEGORIES
@@ -18,8 +19,10 @@ export const ProductsController = {
     try {
       const body = CreateCategorySchema.parse(req.body);
 
+      const shopId = getShopId(req);
+
       const category = await ProductsService.createCategory(
-        req.user!.shopId,
+        shopId,
         body,
       );
 
@@ -35,7 +38,8 @@ export const ProductsController = {
 
   getCategories: async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const categories = await ProductsService.getCategories(req.user!.shopId);
+      const shopId = getShopId(req);
+      const categories = await ProductsService.getCategories(shopId);
 
       return res.status(200).json({ categories });
     } catch (error) {
@@ -46,7 +50,8 @@ export const ProductsController = {
   deleteCategory: async (req: AuthenticatedRequest, res: Response) => {
     try {
       const id = req.params.id as string;
-      await ProductsService.deleteCategory(id, req.user!.shopId);
+      const shopId = getShopId(req);
+      await ProductsService.deleteCategory(id, shopId);
 
       return res.status(200).json({
         message: "Category deleted successfully",
@@ -62,8 +67,9 @@ export const ProductsController = {
     try {
       const body = CreateProductSchema.parse(req.body);
 
+      const shopId = getShopId(req);
       const product = await ProductsService.createProduct(
-        req.user!.shopId,
+        shopId,
         body,
       );
 
@@ -83,7 +89,7 @@ export const ProductsController = {
       const limit = Number(req.query.limit) || 20;
 
       const result = await ProductsService.getProducts(
-        req.user!.shopId,
+        getShopId(req),
         page,
         limit,
       );
@@ -98,7 +104,7 @@ export const ProductsController = {
     try {
       const product = await ProductsService.getProduct(
         req.params.id as string,
-        req.user!.shopId,
+        getShopId(req),
       );
 
       return res.status(200).json({ product });
@@ -115,7 +121,7 @@ export const ProductsController = {
       if (barcode) {
         const product = await ProductsService.searchByBarcode(
           barcode,
-          req.user!.shopId,
+          getShopId(req),
         );
         return res.status(200).json({ product });
       }
@@ -123,7 +129,7 @@ export const ProductsController = {
       // Name search returns paginated list
       if (q) {
         const result = await ProductsService.searchProducts(
-          req.user!.shopId,
+          getShopId(req),
           q,
           page,
           limit,
@@ -139,7 +145,7 @@ export const ProductsController = {
   getLowStockProducts: async (req: AuthenticatedRequest, res: Response) => {
     try {
       const products = await ProductsService.getLowStockProducts(
-        req.user!.shopId,
+        getShopId(req),
       );
 
       return res.status(200).json({ products });
@@ -154,7 +160,7 @@ export const ProductsController = {
 
       const product = await ProductsService.updateProduct(
         req.params.id as string,
-        req.user!.shopId,
+        getShopId(req),
         body,
       );
 
@@ -172,7 +178,7 @@ export const ProductsController = {
     try {
       await ProductsService.deleteProduct(
         req.params.id as string,
-        req.user!.shopId,
+        getShopId(req),
       );
 
       return res.status(200).json({
@@ -189,7 +195,7 @@ export const ProductsController = {
 
       const product = await ProductsService.adjustStock(
         req.params.id as string,
-        req.user!.shopId,
+        getShopId(req),
         req.user!.userId,
         body,
       );
