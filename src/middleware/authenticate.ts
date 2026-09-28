@@ -11,7 +11,7 @@ if (!JWT_SECRET) {
 
 const jwtPayloadSchema = z.object({
   userId: z.string(),
-  shopId: z.string(),
+  shopId: z.string().nullable(),
   role: z.enum(["OWNER", "ADMIN", "CASHIER"]),
 });
 
@@ -43,7 +43,7 @@ export const authenticate = (
 
     req.user = {
       userId: result.userId,
-      shopId: result.shopId,
+      shopId: result.shopId ,
       role: result.role,
     };
 
