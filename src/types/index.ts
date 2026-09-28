@@ -3,7 +3,7 @@ import { Request } from "express";
 export interface AuthenticatedRequest extends Request {
   user?: {
     userId: string;
-    shopId: string;
+    shopId: string | null;
     role: "OWNER" | "ADMIN" | "CASHIER";
   };
 }
