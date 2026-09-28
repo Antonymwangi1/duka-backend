@@ -25,7 +25,7 @@ export const authenticate = (
     return res.status(401).json({ message: "Authorization header missing" });
   }
 
-  const token = authHeader.slice(7); // Remove "Bearer " prefix
+  const token = authHeader.split(" ")[1]; // Remove "Bearer " prefix
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     const result = jwtPayloadSchema.parse(decoded);
