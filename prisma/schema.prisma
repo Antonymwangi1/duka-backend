@@ -57,11 +57,12 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  shop           Shop?           @relation("ShopStaff", fields: [shopId], references: [id])
-  ownedShops     Shop[]          @relation("ShopOwner")
-  sales          Sale[]
-  stockMovements StockMovement[]
-  reports        Report[]
+  shop               Shop?                    @relation("ShopStaff", fields: [shopId], references: [id])
+  ownedShops         Shop[]                   @relation("ShopOwner")
+  sales              Sale[]
+  stockMovements     StockMovement[]
+  reports            Report[]
+  emailVerifications EmailVerificationToken[]
 
   @@index([shopId], name: "idx_user_shop_id")
   @@index([role], name: "idx_user_role")
@@ -214,4 +215,18 @@ model Report {
   @@index([shopId], name: "idx_report_shop_id")
   @@index([reportType], name: "idx_report_type")
   @@map("reports")
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  tokenHash String    @unique
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], name: "idx_email_verification_token_user_id")
+  @@map("email_verification_tokens")
 }
