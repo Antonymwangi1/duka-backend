@@ -8,6 +8,10 @@ export const handleError = (res: Response, error: unknown) => {
         return res.status(409).json({
           message: "An account with this email already exists",
         });
+      case "EMAIL_NOT_VERIFIED":
+        return res.status(403).json({
+          message: "Your email is not verified. Please verify your email.",
+        });
       case "INVALID_CREDENTIALS":
         return res.status(401).json({
           message: "Invalid email or password",
@@ -104,4 +108,11 @@ export const handleZodError = (res: Response, error: unknown) => {
     });
   }
   return null;
+};
+
+export const isUniqueConstraintError = (error: unknown): boolean => {
+  if (error instanceof Error) {
+    return error.message.includes("Unique constraint failed");
+  }
+  return false;
 };

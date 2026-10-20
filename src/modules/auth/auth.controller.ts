@@ -55,6 +55,43 @@ export const AuthController = {
     }
   },
 
+  
+  // VERIFY EMAIL
+  verifyEmail: async (req: Request, res: Response) => {
+    try {
+      const { token } = req.query;
+
+      if (!token || typeof token !== "string") {
+        return res.status(400).json({
+          message: "Verification token is required",
+        });
+      }
+
+      await AuthService.verifyEmail(token);
+
+      return res.status(200).json({
+        message: "Email verified successfully",
+      });
+    } catch (error) {
+      return handleError(res, error);
+    }
+  },
+
+  // RESEND VERIFICATION EMAIL
+  resendVerificationEmail: async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+
+      await AuthService.resendVerificationEmail(email);
+
+      return res.status(200).json({
+        message: "Verification email sent successfully",
+      });
+    } catch (error) {
+      return handleError(res, error);
+    }
+  },
+
   // LOGIN
   login: async (req: Request, res: Response) => {
     try {
@@ -81,6 +118,7 @@ export const AuthController = {
       return handleError(res, error);
     }
   },
+
 
   // LOGOUT
   logout: async (req: Request, res: Response) => {

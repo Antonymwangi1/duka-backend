@@ -72,20 +72,37 @@ export const AuthRepository = {
     });
   },
 
-  // create owner account
-  createOwner: async (data: {
-    fullname: string;
-    email: string;
-    phone: string;
-    passwordHash: string;
-  }) => {
-    return prisma.user.create({
-      data: {
-        ...data,
-        role: "OWNER",
-        isActive: true,
-      },
+  // create owner and shop account in one transaction
+  createOwnerAndShop: async (data: RegisterInput, passwordHash: string) => {
+    // create owner and shop in one transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // create owner first
+      const owner = await tx.user.create({
+        data: {
+          fullname: data.fullname,
+          email: data.email,
+          phone: data.phone,
+          passwordHash,
+          role: "OWNER",
+          isActive: true,
+        },
+      });
+
+      // create shop with owner reference
+      const shop = await tx.shop.create({
+        data: {
+          shopName: data.shopName,
+          address: data.address,
+          phone: data.shopPhone,
+          currency: data.currency,
+          ownerId: owner.id,
+        },
+      });
+
+      return { owner, shop };
     });
+
+    return result;
   },
 
   // create staff account
@@ -142,7 +159,7 @@ export const AuthRepository = {
     });
   },
 
-  // shop quereies
+  // shop queries
 
   // Create shop
   createShop: async (data: {
@@ -186,6 +203,62 @@ export const AuthRepository = {
   findShopByPhone: async (phone: string) => {
     return prisma.shop.findUnique({
       where: { phone },
+    });
+  },
+
+  storeAndInvalidateEmailVerificationToken: async (
+    userId: string,
+    tokenHash: string,
+    expiresAt: Date,
+  ) => {
+    return prisma.$transaction(async (tx) => {
+      const now = new Date();
+
+      await tx.emailVerificationToken.updateMany({
+        where: {
+          userId,
+          usedAt: null,
+        },
+        data: {
+          expiresAt: now,
+        },
+      });
+
+      return tx.emailVerificationToken.create({
+        data: {
+          userId,
+          tokenHash,
+          expiresAt,
+        },
+      });
+    });
+  },
+
+  // mark user as verified and verification token as used
+  markUserAsVerified: async (userId: string, tokenHash: string) => {
+    return prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: { emailVerifiedAt: new Date() },
+      });
+
+      await tx.emailVerificationToken.update({
+        where: {
+          userId,
+          tokenHash,
+          usedAt: null,
+        },
+        data: {
+          usedAt: new Date(),
+        },
+      });
+    });
+  },
+
+  // find email verification token by hash
+  findEmailVerificationTokenByHash: async (tokenHash: string) => {
+    return prisma.emailVerificationToken.findUnique({
+      where: { tokenHash },
     });
   },
 };

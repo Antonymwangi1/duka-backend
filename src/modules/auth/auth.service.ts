@@ -1,6 +1,5 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { prisma } from "@lib/prisma";
 import { AuthRepository } from "./auth.repository";
 import {
   RegisterInput,
@@ -10,6 +9,10 @@ import {
   SwitchShopInput,
   CreateShopInput,
 } from "./auth.schema";
+import { createEmailVerificationToken } from "@lib/tokens/createEmailVerificationToken";
+import { isUniqueConstraintError } from "@lib/handleError";
+import crypto from "crypto";
+import { sendVerificationEmail } from "../../shared/sendVerificationEmail";
 
 // Token Helpers --------------------------------------------
 
@@ -45,32 +48,24 @@ export const AuthService = {
     const passwordHash = await bcrypt.hash(data.password, 12);
 
     // create owner and shop in one transaction
-    const result = await prisma.$transaction(async (tx) => {
-      // create owner first
-      const owner = await tx.user.create({
-        data: {
-          fullname: data.fullname,
-          email: data.email,
-          phone: data.phone,
-          passwordHash,
-          role: "OWNER",
-          isActive: true,
-        },
-      });
+    let result;
+    try {
+      result = await AuthRepository.createOwnerAndShop(data, passwordHash);
+    } catch (error) {
+      if (isUniqueConstraintError(error)) {
+        throw new Error("EMAIL_TAKEN");
+      }
+      throw error;
+    }
 
-      // create shop with owner reference
-      const shop = await tx.shop.create({
-        data: {
-          shopName: data.shopName,
-          address: data.address,
-          phone: data.shopPhone,
-          currency: data.currency,
-          ownerId: owner.id,
-        },
-      });
-
-      return { owner, shop };
-    });
+    // send verification email
+    const { verificationToken, verificationTokenHash, expiresAt } =
+      await createEmailVerificationToken();
+    await AuthRepository.storeAndInvalidateEmailVerificationToken(
+      result.owner.id,
+      verificationTokenHash,
+      expiresAt,
+    );
 
     // generate tokens
     const accessToken = generateAccessToken({
@@ -107,7 +102,12 @@ export const AuthService = {
   login: async (data: LoginInput) => {
     // check if user exists
     const user = await AuthRepository.findUserByEmail(data.email);
-    if (!user) {
+    // verify password
+    const passwordMatch = await bcrypt.compare(
+      data.password,
+      user!.passwordHash,
+    );
+    if (!user || !passwordMatch) {
       throw new Error("INVALID_CREDENTIALS");
     }
 
@@ -116,13 +116,9 @@ export const AuthService = {
       throw new Error("ACCOUNT_DISABLED");
     }
 
-    // verify password
-    const passwordMatch = await bcrypt.compare(
-      data.password,
-      user.passwordHash,
-    );
-    if (!passwordMatch) {
-      throw new Error("INVALID_CREDENTIALS");
+    // check if email is verified
+    if (!user.emailVerifiedAt) {
+      throw new Error("EMAIL_NOT_VERIFIED");
     }
 
     // Determine shopId for JWT
@@ -171,6 +167,56 @@ export const AuthService = {
     };
   },
 
+  // verify email
+  verifyEmail: async (token: string) => {
+    //  compare token to tokenHash in the db
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+    const verificationToken =
+      await AuthRepository.findEmailVerificationTokenByHash(tokenHash);
+
+    if (!verificationToken) {
+      throw new Error("INVALID_VERIFICATION_TOKEN");
+    }
+
+    // check if token is expired
+    if (verificationToken.expiresAt < new Date()) {
+      throw new Error("VERIFICATION_TOKEN_EXPIRED");
+    }
+
+    // mark user as verified and token as used
+    await AuthRepository.markUserAsVerified(
+      verificationToken.userId,
+      tokenHash,
+    );
+  },
+
+  resendVerificationEmail: async (email: string) => {
+    // find user by email
+    const user = await AuthRepository.findUserByEmail(email);
+    if (!user) {
+      throw new Error("USER_NOT_FOUND");
+    }
+
+    // check if already verified
+    if (user.emailVerifiedAt) {
+      throw new Error("EMAIL_ALREADY_VERIFIED");
+    }
+
+    // generate new verification token
+    const { verificationToken, verificationTokenHash, expiresAt } =
+      await createEmailVerificationToken();
+
+    // store and invalidate old tokens
+    await AuthRepository.storeAndInvalidateEmailVerificationToken(
+      user.id,
+      verificationTokenHash,
+      expiresAt,
+    );
+
+    // send email with new token
+    await sendVerificationEmail(user.email, verificationToken);
+  },
+
   // REFRESH TOKEN
   refresh: async (refreshToken: string) => {
     // verify refresh token
@@ -199,17 +245,17 @@ export const AuthService = {
     // Determine shopId
     // Staff have shopId on their user record
     // Owners have shopId linked via shops.ownerId
-    let shopId: string | null = user.shopId ?? null
+    let shopId: string | null = user.shopId ?? null;
 
-    if (user.role === 'OWNER' && !shopId) {
-        // Fetch owner's shops
-        const shops = await AuthRepository.findShopsByOwnerId(user.id)
-        if (shops.length === 1) {
-            // Single shop owner — auto select
-            shopId = shops[0].id
-        }
-        // Multiple shops → shopId stays null
-        // Frontend will show shop selector
+    if (user.role === "OWNER" && !shopId) {
+      // Fetch owner's shops
+      const shops = await AuthRepository.findShopsByOwnerId(user.id);
+      if (shops.length === 1) {
+        // Single shop owner — auto select
+        shopId = shops[0].id;
+      }
+      // Multiple shops → shopId stays null
+      // Frontend will show shop selector
     }
 
     // generate new access token
