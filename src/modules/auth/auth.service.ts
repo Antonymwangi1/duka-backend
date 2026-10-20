@@ -67,21 +67,10 @@ export const AuthService = {
       expiresAt,
     );
 
-    // generate tokens
-    const accessToken = generateAccessToken({
-      userId: result.owner.id,
-      shopId: result.shop.id,
-      role: "OWNER",
-    });
-
-    const refreshToken = generateRefreshToken({
-      userId: result.owner.id,
-    });
+    await sendVerificationEmail(result.owner.email, verificationToken);
 
     // return tokens and user data
     return {
-      accessToken,
-      refreshToken,
       user: {
         id: result.owner.id,
         fullname: result.owner.fullname,
@@ -114,11 +103,6 @@ export const AuthService = {
     // check account is active
     if (!user.isActive) {
       throw new Error("ACCOUNT_DISABLED");
-    }
-
-    // check if email is verified
-    if (!user.emailVerifiedAt) {
-      throw new Error("EMAIL_NOT_VERIFIED");
     }
 
     // Determine shopId for JWT
@@ -163,6 +147,7 @@ export const AuthService = {
         email: user.email,
         role: user.role,
         shopId,
+        isVerified: Boolean(user.emailVerifiedAt),
       },
     };
   },

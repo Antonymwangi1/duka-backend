@@ -37,13 +37,9 @@ export const AuthController = {
       // call service
       const result = await AuthService.register(body);
 
-      // set refresh token in HTTP only cookie
-      res.cookie(REFRESH_TOKEN_COOKIE, result.refreshToken, cookieOptions);
-
       // return response
       return res.status(201).json({
         message: "Account created successfully",
-        accessToken: result.accessToken,
         user: result.user,
         shop: result.shop,
       });
@@ -55,11 +51,10 @@ export const AuthController = {
     }
   },
 
-  
   // VERIFY EMAIL
   verifyEmail: async (req: Request, res: Response) => {
     try {
-      const { token } = req.query;
+      const { token } = req.params;
 
       if (!token || typeof token !== "string") {
         return res.status(400).json({
@@ -83,6 +78,10 @@ export const AuthController = {
       const { email } = req.body;
 
       await AuthService.resendVerificationEmail(email);
+
+      if (typeof email !== "string" || !email.trim()) {
+        return res.status(400).json({ message: "Email is required" });
+      }
 
       return res.status(200).json({
         message: "Verification email sent successfully",
@@ -118,7 +117,6 @@ export const AuthController = {
       return handleError(res, error);
     }
   },
-
 
   // LOGOUT
   logout: async (req: Request, res: Response) => {
