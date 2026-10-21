@@ -3,6 +3,7 @@ import { ReportsController } from "./reports.controller";
 import { authenticate } from "@middleware/authenticate";
 import { authorise } from "@middleware/authorise";
 import { rateLimiter } from "@middleware/rateLimiter";
+import { requireVerified } from "@middleware/requireVerified";
 
 const router = Router();
 
@@ -13,6 +14,7 @@ const router = Router();
 router.get(
   "/summary",
   authenticate,
+  requireVerified,
   authorise("OWNER", "ADMIN"),
   rateLimiter({ max: 30, windowMs: 60 * 1000 }), // 30 per minute
   ReportsController.getSummary,
@@ -22,6 +24,7 @@ router.get(
 router.get(
   "/profit",
   authenticate,
+  requireVerified,
   authorise("OWNER", "ADMIN"),
   rateLimiter({ max: 30, windowMs: 60 * 1000 }),
   ReportsController.getProfitReport,
@@ -31,6 +34,7 @@ router.get(
 router.get(
   "/top-products",
   authenticate,
+  requireVerified,
   authorise("OWNER", "ADMIN"),
   rateLimiter({ max: 30, windowMs: 60 * 1000 }),
   ReportsController.getTopProducts,
@@ -40,6 +44,7 @@ router.get(
 router.get(
   "/staff",
   authenticate,
+  requireVerified,
   authorise("OWNER"),
   rateLimiter({ max: 30, windowMs: 60 * 1000 }),
   ReportsController.getStaffPerformance,
@@ -49,6 +54,7 @@ router.get(
 router.get(
   "/low-stock",
   authenticate,
+  requireVerified,
   authorise("OWNER", "ADMIN"),
   rateLimiter({ max: 30, windowMs: 60 * 1000 }),
   ReportsController.getLowStockReport,

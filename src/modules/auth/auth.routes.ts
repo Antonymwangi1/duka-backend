@@ -14,6 +14,18 @@ router.post(
 );
 
 router.post(
+  "/verify-email",
+  rateLimiter({ max: 10, windowMs: 60 * 60 * 1000 }), // 10 per hour
+  AuthController.verifyEmail,
+);
+
+router.post(
+  "/resend-verification-email",
+  rateLimiter({ max: 5, windowMs: 60 * 60 * 1000 }), // 5 per hour
+  AuthController.resendVerificationEmail,
+);
+
+router.post(
   "/login",
   rateLimiter({ max: 5, windowMs: 10 * 60 * 1000 }), // 5 per 10 minutes
   AuthController.login,

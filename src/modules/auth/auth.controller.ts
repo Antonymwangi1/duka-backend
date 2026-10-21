@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { ZodError } from "zod";
+import z, { ZodError } from "zod";
 import { AuthService } from "./auth.service";
 import {
   RegisterSchema,
@@ -37,13 +37,9 @@ export const AuthController = {
       // call service
       const result = await AuthService.register(body);
 
-      // set refresh token in HTTP only cookie
-      res.cookie(REFRESH_TOKEN_COOKIE, result.refreshToken, cookieOptions);
-
       // return response
       return res.status(201).json({
         message: "Account created successfully",
-        accessToken: result.accessToken,
         user: result.user,
         shop: result.shop,
       });
@@ -51,6 +47,49 @@ export const AuthController = {
       if (error instanceof ZodError) {
         return handleZodError(res, error);
       }
+      return handleError(res, error);
+    }
+  },
+
+  // VERIFY EMAIL
+  verifyEmail: async (req: Request, res: Response) => {
+    try {
+      const tokenSchema = z
+        .string()
+        .trim()
+        .min(1, "Verification token is required");
+      const parsed = tokenSchema.safeParse(req.body?.token);
+
+      if (!parsed.success) {
+        return handleZodError(res, parsed.error);
+      }
+
+      await AuthService.verifyEmail(parsed.data);
+
+      return res.status(200).json({
+        message: "Email verified successfully",
+      });
+    } catch (error) {
+      return handleError(res, error);
+    }
+  },
+
+  // RESEND VERIFICATION EMAIL
+  resendVerificationEmail: async (req: Request, res: Response) => {
+    try {
+      const emailSchema = z.string().trim().email();
+      const parsed = emailSchema.safeParse(req.body?.email);
+
+      if (!parsed.success) {
+        return handleZodError(res, parsed.error);
+      }
+
+      await AuthService.resendVerificationEmail(parsed.data);
+
+      return res.status(200).json({
+        message: "Verification email sent successfully",
+      });
+    } catch (error) {
       return handleError(res, error);
     }
   },

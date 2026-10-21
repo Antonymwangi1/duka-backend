@@ -3,6 +3,7 @@ import { ProductsController } from "./products.controller";
 import { authenticate } from "@middleware/authenticate";
 import { authorise } from "@middleware/authorise";
 import { rateLimiter } from "@middleware/rateLimiter";
+import { requireVerified } from "@middleware/requireVerified";
 
 const router = Router();
 
@@ -13,17 +14,19 @@ router.post(
   "/categories",
   authenticate,
   authorise("OWNER", "ADMIN"),
+  requireVerified,
   ProductsController.createCategory,
 );
 
 // Get all categories
-router.get("/categories", authenticate, ProductsController.getCategories);
+router.get("/categories", authenticate, requireVerified, ProductsController.getCategories);
 
 // Delete category
 router.delete(
   "/categories/:id",
   authenticate,
   authorise("OWNER", "ADMIN"),
+  requireVerified,
   ProductsController.deleteCategory,
 );
 
@@ -33,31 +36,34 @@ router.delete(
 router.get(
   "/search",
   authenticate,
+  requireVerified,
   rateLimiter({ max: 60, windowMs: 60 * 1000 }), // 60 per minute
   ProductsController.searchProducts,
 );
 
 // Get low stock products must be before /:id
-router.get("/low-stock", authenticate, ProductsController.getLowStockProducts);
+router.get("/low-stock", authenticate, requireVerified, ProductsController.getLowStockProducts);
 
 // Create product
 router.post(
   "/",
   authenticate,
+  requireVerified,
   authorise("OWNER", "ADMIN"),
   ProductsController.createProduct,
 );
 
 // Get all products
-router.get("/", authenticate, ProductsController.getProducts);
+router.get("/", authenticate, requireVerified, ProductsController.getProducts);
 
 // Get single product
-router.get("/:id", authenticate, ProductsController.getProduct);
+router.get("/:id", authenticate, requireVerified, ProductsController.getProduct);
 
 // Update product
 router.patch(
   "/:id",
   authenticate,
+  requireVerified,
   authorise("OWNER", "ADMIN"),
   ProductsController.updateProduct,
 );
@@ -66,6 +72,7 @@ router.patch(
 router.delete(
   "/:id",
   authenticate,
+  requireVerified,
   authorise("OWNER", "ADMIN"),
   ProductsController.deleteProduct,
 );
@@ -74,6 +81,7 @@ router.delete(
 router.patch(
   "/:id/stock",
   authenticate,
+  requireVerified,
   authorise("OWNER", "ADMIN"),
   ProductsController.adjustStock,
 );
