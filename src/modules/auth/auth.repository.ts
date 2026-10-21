@@ -26,6 +26,7 @@ export const AuthRepository = {
         phone: true,
         role: true,
         shopId: true,
+        emailVerifiedAt: true,
         isActive: true,
         createdAt: true,
       },

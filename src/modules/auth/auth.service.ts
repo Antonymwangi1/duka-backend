@@ -91,18 +91,27 @@ export const AuthService = {
   login: async (data: LoginInput) => {
     // check if user exists
     const user = await AuthRepository.findUserByEmail(data.email);
+    if (!user) {
+      throw new Error("INVALID_CREDENTIALS");
+    }
+
     // verify password
     const passwordMatch = await bcrypt.compare(
       data.password,
       user!.passwordHash,
     );
-    if (!user || !passwordMatch) {
+    if (!passwordMatch) {
       throw new Error("INVALID_CREDENTIALS");
     }
 
     // check account is active
     if (!user.isActive) {
       throw new Error("ACCOUNT_DISABLED");
+    }
+
+    // check if email is verified
+    if (!user.emailVerifiedAt) {
+      throw new Error("EMAIL_NOT_VERIFIED");
     }
 
     // Determine shopId for JWT
@@ -163,6 +172,11 @@ export const AuthService = {
       throw new Error("INVALID_VERIFICATION_TOKEN");
     }
 
+    // check if used
+    if (verificationToken.usedAt) {
+      throw new Error("VERIFICATION_TOKEN_ALREADY_USED");
+    }
+
     // check if token is expired
     if (verificationToken.expiresAt < new Date()) {
       throw new Error("VERIFICATION_TOKEN_EXPIRED");
@@ -179,12 +193,12 @@ export const AuthService = {
     // find user by email
     const user = await AuthRepository.findUserByEmail(email);
     if (!user) {
-      throw new Error("USER_NOT_FOUND");
+      return;
     }
 
     // check if already verified
     if (user.emailVerifiedAt) {
-      throw new Error("EMAIL_ALREADY_VERIFIED");
+      return;
     }
 
     // generate new verification token

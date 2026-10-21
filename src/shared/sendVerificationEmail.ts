@@ -1,7 +1,7 @@
 import { transporter } from "./mailer";
 
 export const sendVerificationEmail = async (to: string, token: string) => {
-  const link = `${process.env.FRONTEND_URL}/api/v1/auth/verify-email?token=${encodeURIComponent(token)}`;
+  const link = `${process.env.FRONTEND_URL}/verify-email?token=${encodeURIComponent(token)}`;
 
   await transporter.sendMail({
     from: process.env.MAIL_FROM,

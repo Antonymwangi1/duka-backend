@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { ZodError } from "zod";
+import z, { ZodError } from "zod";
 import { AuthService } from "./auth.service";
 import {
   RegisterSchema,
@@ -54,15 +54,17 @@ export const AuthController = {
   // VERIFY EMAIL
   verifyEmail: async (req: Request, res: Response) => {
     try {
-      const { token } = req.params;
+      const tokenSchema = z
+        .string()
+        .trim()
+        .min(1, "Verification token is required");
+      const parsed = tokenSchema.safeParse(req.body?.token);
 
-      if (!token || typeof token !== "string") {
-        return res.status(400).json({
-          message: "Verification token is required",
-        });
+      if (!parsed.success) {
+        return handleZodError(res, parsed.error);
       }
 
-      await AuthService.verifyEmail(token);
+      await AuthService.verifyEmail(parsed.data);
 
       return res.status(200).json({
         message: "Email verified successfully",
@@ -75,13 +77,14 @@ export const AuthController = {
   // RESEND VERIFICATION EMAIL
   resendVerificationEmail: async (req: Request, res: Response) => {
     try {
-      const { email } = req.body;
+      const emailSchema = z.string().trim().email();
+      const parsed = emailSchema.safeParse(req.body?.email);
 
-      await AuthService.resendVerificationEmail(email);
-
-      if (typeof email !== "string" || !email.trim()) {
-        return res.status(400).json({ message: "Email is required" });
+      if (!parsed.success) {
+        return handleZodError(res, parsed.error);
       }
+
+      await AuthService.resendVerificationEmail(parsed.data);
 
       return res.status(200).json({
         message: "Verification email sent successfully",
