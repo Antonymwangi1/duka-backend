@@ -8,6 +8,22 @@ export const handleError = (res: Response, error: unknown) => {
         return res.status(409).json({
           message: "An account with this email already exists",
         });
+      case "EMAIL_NOT_VERIFIED":
+        return res.status(403).json({
+          message: "Your email is not verified. Please verify your email.",
+        });
+      case "VERIFICATION_TOKEN_EXPIRED":
+        return res.status(400).json({
+          message: "Verification token has expired. Please request a new one.",
+        });
+      case "INVALID_VERIFICATION_TOKEN":
+        return res.status(400).json({
+          message: "Invalid verification token. Please request a new one.",
+        });
+      case "VERIFICATION_TOKEN_ALREADY_USED":
+        return res.status(400).json({
+          message: "Verification token has already been used.",
+        });
       case "INVALID_CREDENTIALS":
         return res.status(401).json({
           message: "Invalid email or password",
@@ -104,4 +120,11 @@ export const handleZodError = (res: Response, error: unknown) => {
     });
   }
   return null;
+};
+
+export const isUniqueConstraintError = (error: unknown): boolean => {
+  if (error instanceof Error) {
+    return error.message.includes("Unique constraint failed");
+  }
+  return false;
 };
