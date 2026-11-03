@@ -9,6 +9,7 @@ import salesRouter from "@modules/sales/sales.routes";
 import reportsRouter from "@modules/reports/reports.routes";
 
 const app = express();
+app.set("trust proxy", 1);
 // global middleware
 app.use(helmet());
 app.use(

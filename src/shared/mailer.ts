@@ -1,13 +1,9 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-const port = Number(process.env.SMTP_PORT);
+const apiKey = process.env.RESEND_API_KEY;
 
-export const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port,
-  secure: port === 465,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+if (!apiKey) {
+  throw new Error("RESEND_API_KEY is not configured");
+}
+
+export const resend = new Resend(apiKey);
