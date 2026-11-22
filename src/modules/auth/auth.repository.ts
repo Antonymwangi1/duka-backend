@@ -33,6 +33,22 @@ export const AuthRepository = {
     });
   },
 
+  // find user by phone
+  findUserByPhone: async (phone: string) => {
+    return prisma.user.findUnique({
+      where: { phone },
+      select: {
+        id: true,
+        fullname: true,
+        email: true,
+        phone: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+      },
+    });
+  },
+
   // find staff belonging to a shop
   findStaffByShopId: async (shopId: string) => {
     return prisma.user.findMany({

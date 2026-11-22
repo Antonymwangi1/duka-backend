@@ -13,6 +13,8 @@ import { createEmailVerificationToken } from "@lib/tokens/createEmailVerificatio
 import { isUniqueConstraintError } from "@lib/handleError";
 import crypto from "crypto";
 import { sendVerificationEmail } from "../../shared/sendVerificationEmail";
+import { promise } from "zod";
+import { Prisma } from "@prisma/client";
 
 // Token Helpers --------------------------------------------
 
@@ -304,28 +306,43 @@ export const AuthService = {
   // CREATE NEW SHOP (for existing owner)
   createShop: async (ownerId: string, data: CreateShopInput) => {
     // check if shop phon already taken
-    const existingShop = await AuthRepository.findShopByPhone(data.shopPhone);
-    if (existingShop) {
-      throw new Error("SHOP_PHONE_TAKEN");
+    const [shopWithPhone, userWithPhone] = await Promise.all([
+      AuthRepository.findShopByPhone(data.shopPhone),
+      AuthRepository.findUserByPhone(data.shopPhone),
+    ]);
+
+    // check if phone number exists for any user (owner or staff or shop)
+    if (shopWithPhone || userWithPhone) {
+      throw new Error("PHONE_TAKEN");
     }
 
-    // create shop
-    const shop = await AuthRepository.createShop({
-      shopName: data.shopName,
-      address: data.address,
-      phone: data.shopPhone,
-      currency: data.currency,
-      ownerId,
-    });
+    try {
+      // create shop
+      const shop = await AuthRepository.createShop({
+        shopName: data.shopName,
+        address: data.address,
+        phone: data.shopPhone,
+        currency: data.currency,
+        ownerId,
+      });
 
-    // Issue new access token scoped to new shop
-    const accessToken = generateAccessToken({
-      userId: ownerId,
-      shopId: shop.id,
-      role: "OWNER",
-    });
+      // Issue new access token scoped to new shop
+      const accessToken = generateAccessToken({
+        userId: ownerId,
+        shopId: shop.id,
+        role: "OWNER",
+      });
 
-    return { shop, accessToken };
+      return { shop, accessToken };
+    } catch (err) {
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === "P2002"
+      ) {
+        throw new Error("PHONE_TAKEN");
+      }
+      throw err;
+    }
   },
 
   // GET ALL MY SHOPS

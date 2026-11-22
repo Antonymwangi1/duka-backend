@@ -28,6 +28,11 @@ export const handleError = (res: Response, error: unknown) => {
         return res.status(401).json({
           message: "Invalid email or password",
         });
+      case "PHONE_TAKEN":
+        return res.status(409).json({
+          code: "PHONE_TAKEN",
+          message: "Phone number already in use",
+        });
       case "ACCOUNT_DISABLED":
         return res.status(403).json({
           message: "Your account has been disabled. Contact your shop owner.",
