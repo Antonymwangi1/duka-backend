@@ -200,6 +200,7 @@ export const AuthController = {
       });
     } catch (error) {
       if (error instanceof ZodError) return handleZodError(res, error);
+      console.log(error);
       return handleError(res, error);
     }
   },
